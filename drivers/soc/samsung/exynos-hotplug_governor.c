@@ -1143,12 +1143,11 @@ static int __init exynos_hpgov_init(void)
 	if (exynos_hpgov_parse_dt())
 		goto failed;
 
-	//rimuovi controllo boostable
 	/* start hp_governor after BOOT_ENAMBE_MS */
-	//if (!exynos_hpgov_boostable()) {
-	//	pr_info("HP_GOV initialization is canceled by boost frequency\n");
-	//	goto failed;
-	//}
+	if (!exynos_hpgov_boostable()) {
+		pr_info("HP_GOV initialization is canceled by boost frequency\n");
+		goto failed;
+	}
 
 	/* Imposta la modalità dell'utente a QUAD (valore massimo) */
 	exynos_hpgov.user_mode = QUAD;
@@ -1162,9 +1161,9 @@ static int __init exynos_hpgov_init(void)
 	/* init mutex */
 	mutex_init(&exynos_hpgov.attrib_lock);
 
-	//rimuovi irq request /* init workqueue */
+	/* init workqueue */
 	init_waitqueue_head(&exynos_hpgov.wait_q);
-	//init_irq_work(&exynos_hpgov.update_irq_work, exynos_hpgov_irq_work);
+	init_irq_work(&exynos_hpgov.update_irq_work, exynos_hpgov_irq_work);
 
 	/* register sysfs */
 	exynos_hpgov.attrib.attrib_group.attrs =
@@ -1206,15 +1205,14 @@ static int __init exynos_hpgov_init(void)
 	exynos_hpgov.req_cpu_min = PM_QOS_CPU_ONLINE_MAX_DEFAULT_VALUE;
 	exynos_hpgov.cur_cpu_min = PM_QOS_CPU_ONLINE_MAX_DEFAULT_VALUE;
 
-	//rimuovi richiesta qos
 	/* Add pm qos handler for hotplug */
-	//pm_qos_add_request(&hpgov_min_pm_qos, PM_QOS_CPU_ONLINE_MIN,
-	//				PM_QOS_CPU_ONLINE_MIN_DEFAULT_VALUE);
-	//pm_qos_update_request_param(&hpgov_min_pm_qos,
-	//		PM_QOS_CPU_ONLINE_MAX_DEFAULT_VALUE, NULL);
+	pm_qos_add_request(&hpgov_min_pm_qos, PM_QOS_CPU_ONLINE_MIN,
+					PM_QOS_CPU_ONLINE_MIN_DEFAULT_VALUE);
+	pm_qos_update_request_param(&hpgov_min_pm_qos,
+			PM_QOS_CPU_ONLINE_MAX_DEFAULT_VALUE, NULL);
 
-	//pm_qos_add_request(&hpgov_suspend_pm_qos, PM_QOS_CPU_ONLINE_MIN,
-	//				PM_QOS_CPU_ONLINE_MIN_DEFAULT_VALUE);
+	pm_qos_add_request(&hpgov_suspend_pm_qos, PM_QOS_CPU_ONLINE_MIN,
+					PM_QOS_CPU_ONLINE_MIN_DEFAULT_VALUE);
 
 	/* register cpu frequency control noti */
 	cpufreq_register_notifier(&exynos_hpgov_policy_nb,
@@ -1229,17 +1227,17 @@ static int __init exynos_hpgov_init(void)
 
 	cpumask_and(&exynos_hpgov.big_cpu_mask,
 			&exynos_hpgov.big_cpu_mask, cpu_online_mask);
-//rimuovi
+
 	/* register pm notifier */
-	//register_pm_notifier(&exynos_hp_gov_suspend_nb);
-	//register_pm_notifier(&exynos_hp_gov_resume_nb);
-//rimuovi
+	register_pm_notifier(&exynos_hp_gov_suspend_nb);
+	register_pm_notifier(&exynos_hp_gov_resume_nb);
+
 	/* register pm qos notifier */
-	//pm_qos_add_notifier(PM_QOS_CLUSTER1_FREQ_MAX,
-	//			&hpgov_pm_qos_max_notifier);
-//rimuovi
-	//schedule_delayed_work_on(0, &hpgov_boot_work,
-	//		msecs_to_jiffies(DEFAULT_BOOT_ENABLE_MS));
+	pm_qos_add_notifier(PM_QOS_CLUSTER1_FREQ_MAX,
+				&hpgov_pm_qos_max_notifier);
+
+	schedule_delayed_work_on(0, &hpgov_boot_work,
+			msecs_to_jiffies(DEFAULT_BOOT_ENABLE_MS));
 
 	exynos_cpu_hotplug_gov_activated();
 
