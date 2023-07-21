@@ -1,5 +1,5 @@
 # add default undervolt values
-CONFIG_CMDLINE="big=-6 lit=-7 g3d=-8 mif=-3"
+#CONFIG_CMDLINE="big=-6 lit=-7 g3d=-8 mif=-3"
 CONFIG_CMDLINE_EXTEND=y
 
 #kernel name
