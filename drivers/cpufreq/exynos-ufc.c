@@ -35,6 +35,8 @@
  */
 #define SCALE_SIZE	2
 
+int exynos_cpufreq_update_volt_table(void);
+
 static int last_max_limit = -1;
 static int sse_mode;
 
